@@ -8,7 +8,7 @@
 <title>Nominate | Feedback Fridays</title>
 <link rel="icon" href="assets/gig-health-primary.svg" />
 <link rel="stylesheet" href="https://use.typekit.net/wek0eum.css" />
-<link rel="stylesheet" href="style.css?v=7" />
+<link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
 <header class="masthead">
@@ -35,7 +35,11 @@
     <form id="nomination" novalidate>
       <div class="field">
         <label for="nominator">Your name</label>
-        <input id="nominator" name="nominator" autocomplete="name" required maxlength="120" list="people-list" />
+        <div class="combo" data-combo="nominator">
+          <input id="nominator" name="nominator" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nominator-list"
+                 autocomplete="off" required maxlength="120" placeholder="Start typing your name" />
+          <ul id="nominator-list" role="listbox" class="listbox" hidden></ul>
+        </div>
       </div>
 
       <div class="field">
@@ -100,7 +104,7 @@
 </main>
 
 <footer class="foot"><p>Feedback Fridays · GIG Health internal</p></footer>
-<script src="config.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="config.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

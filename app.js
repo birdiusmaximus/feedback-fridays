@@ -41,11 +41,8 @@
       }
       people = ctx.employees || [];
       $("issue-number").textContent = ctx.issue;
-      const dl = document.createElement("datalist");
-      dl.id = "people-list";
-      for (const p of people) { const o = document.createElement("option"); o.value = p.name; dl.appendChild(o); }
-      document.body.appendChild(dl);
       try { $("nominator").value = localStorage.getItem("ff-nominator") || ""; } catch (e) { /* storage blocked */ }
+      setupCombo("nominator", (p) => { $("nominator").value = p.name; });
       setupCombo("lead", (p) => { lead = p; $("lead").value = p.name; });
       setupCombo("supporter", (p) => { addSupporter(p); $("supporter").value = ""; });
       setupVoice();

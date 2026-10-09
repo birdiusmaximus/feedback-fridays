@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
+<title>Nominate | Feedback Fridays</title>
+<link rel="icon" href="assets/gig-health-primary.svg" />
+<link rel="stylesheet" href="https://use.typekit.net/wek0eum.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="masthead">
+  <img src="assets/masthead.jpg" alt="GIG Health: Feedback Fridays" width="1000" height="629" />
+</header>
+
+<main id="main" tabindex="-1">
+  <section id="state-loading" class="panel">
+    <p class="muted">Checking your nomination link…</p>
+  </section>
+
+  <section id="state-error" class="panel" hidden>
+    <h1 class="title">Link not available</h1>
+    <p id="error-text"></p>
+  </section>
+
+  <section id="state-form" hidden>
+    <div class="intro">
+      <p class="kicker">Issue #<span id="issue-number"></span></p>
+      <h1 class="title">Nominate someone</h1>
+      <p>Tell us about one achievement by a colleague or team. A few honest sentences are perfect: no need to polish it.
+         You can type, or tap <strong>Speak</strong> and talk.</p>
+      <p class="notice">Please don’t include confidential client information unless it is already approved for internal sharing.</p>
+    </div>
+
+    <form id="nomination" novalidate>
+      <div class="field">
+        <label for="nominator">Your name <span class="req">required</span></label>
+        <input id="nominator" name="nominator" autocomplete="name" required maxlength="120" list="people-list" />
+      </div>
+
+      <div class="field">
+        <label for="lead">Who led this achievement? <span class="req">required</span></label>
+        <div class="combo" data-combo="lead">
+          <input id="lead" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lead-list"
+                 autocomplete="off" required maxlength="120" placeholder="Start typing a name" />
+          <ul id="lead-list" role="listbox" class="listbox" hidden></ul>
+        </div>
+        <p class="hint" id="lead-hint">Pick from the list, or type a name if they’re not there yet.</p>
+      </div>
+
+      <div class="field">
+        <label for="team">Was it a team effort? <span class="opt">optional</span></label>
+        <select id="team" name="team">
+          <option value="">No, it’s about one person</option>
+        </select>
+        <p class="hint">If it was a team, still choose the person who led it above. Their photo is used.</p>
+      </div>
+
+      <div class="field">
+        <label for="supporter">Who else helped? <span class="opt">optional</span></label>
+        <ul class="chips" id="supporter-chips" aria-label="Supporting contributors"></ul>
+        <div class="combo" data-combo="supporter">
+          <input id="supporter" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="supporter-list"
+                 autocomplete="off" maxlength="120" placeholder="Add a name, then press Enter" />
+          <ul id="supporter-list" role="listbox" class="listbox" hidden></ul>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label-row">
+          <label for="achievement">What did they do? <span class="req">required</span></label>
+          <button type="button" class="mic" data-target="achievement" hidden aria-pressed="false">Speak</button>
+        </div>
+        <textarea id="achievement" name="achievement" rows="6" required maxlength="4000"></textarea>
+        <p class="interim" id="achievement-interim" aria-live="polite"></p>
+      </div>
+
+      <div class="field">
+        <div class="label-row">
+          <label for="why">Why was it noteworthy? <span class="opt">optional</span></label>
+          <button type="button" class="mic" data-target="why" hidden aria-pressed="false">Speak</button>
+        </div>
+        <textarea id="why" name="why" rows="3" maxlength="2000"></textarea>
+        <p class="interim" id="why-interim" aria-live="polite"></p>
+      </div>
+
+      <div class="field two">
+        <div>
+          <label for="project">Project or client <span class="opt">optional</span></label>
+          <input id="project" name="project" maxlength="300" />
+        </div>
+        <div>
+          <label for="disease">Disease area <span class="opt">optional</span></label>
+          <input id="disease" name="disease" maxlength="200" />
+        </div>
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="website">Website</label>
+        <input id="website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div id="nudge" class="nudge" hidden role="status"></div>
+
+      <p class="voice-note" id="voice-note"></p>
+      <div class="actions">
+        <button type="submit" class="primary" id="submit">Send nomination</button>
+      </div>
+      <p class="error" id="form-error" role="alert"></p>
+    </form>
+  </section>
+
+  <section id="state-done" class="panel" hidden>
+    <h1 class="title">Thank you</h1>
+    <p>Your nomination for <strong id="done-name"></strong> has been sent to the Feedback Fridays editor.
+       If you need to correct anything, just send a new nomination.</p>
+    <div class="actions"><button type="button" class="primary" id="again">Nominate someone else</button></div>
+  </section>
+</main>
+
+<footer class="foot"><p>Feedback Fridays · GIG Health internal</p></footer>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* GIG Health BrandOS colours. Motiva Sans via Typekit, Tahoma fallback. */
+:root {
+  --night: #0D1A2D; --dusk: #10273E; --flame: #F45347; --paper: #FEF6F6;
+  --sodium: #FFBF3F; --copper: #00AE97; --potassium: #DEA8F4;
+  --ink: #0D1A2D; --muted: #4A5568; --line: #E7D9D9; --white: #fff;
+  --font: "motiva-sans", "Motiva Sans", Tahoma, Verdana, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { font-synthesis: none; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.55; }
+.masthead { background: var(--night); }
+.masthead img { display: block; width: 100%; max-width: 700px; height: auto; margin: 0 auto; }
+main { max-width: 640px; margin: 0 auto; padding: 32px 16px 48px; outline: none; }
+.panel { padding: 8px 0; }
+.kicker { margin: 0; color: var(--flame); font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; font-size: 14px; }
+.title { margin: 4px 0 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.24em; font-size: 26px; line-height: 1.2; }
+.intro p { margin: 0 0 12px; }
+.notice { background: var(--white); border-left: 4px solid var(--sodium); padding: 10px 14px; font-size: 15px; }
+.muted { color: var(--muted); }
+form { margin-top: 24px; }
+.field { margin: 0 0 22px; }
+.field.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .field.two { grid-template-columns: 1fr; } }
+label { display: block; font-weight: 700; margin: 0 0 6px; }
+.req, .opt { font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 6px; }
+.req { color: #B3261E; }
+input, select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--white);
+  border: 1.5px solid #C9B9B9; border-radius: 6px; padding: 11px 12px; }
+textarea { resize: vertical; min-height: 80px; }
+input:focus, select:focus, textarea:focus, button:focus-visible { outline: 3px solid var(--copper); outline-offset: 1px; }
+.hint { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mic { font: inherit; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  border: 1.5px solid var(--night); background: var(--white); color: var(--night); border-radius: 999px; padding: 6px 14px; cursor: pointer; margin-bottom: 6px; }
+.mic[aria-pressed="true"] { background: var(--flame); border-color: var(--flame); color: var(--white); }
+.mic[aria-pressed="true"]::before { content: "● "; }
+.interim { min-height: 1.4em; margin: 4px 0 0; color: var(--muted); font-style: italic; font-size: 15px; }
+.voice-note { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.combo { position: relative; }
+.listbox { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px 0; list-style: none;
+  background: var(--white); border: 1.5px solid #C9B9B9; border-radius: 6px; max-height: 260px; overflow: auto; box-shadow: 0 8px 24px rgba(13,26,45,.12); }
+.listbox li { padding: 9px 12px; cursor: pointer; }
+.listbox li[aria-selected="true"], .listbox li:hover { background: var(--paper); }
+.listbox .team { color: var(--muted); font-size: 13px; margin-left: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 8px; }
+.chips li { display: inline-flex; align-items: center; gap: 6px; background: var(--white); border: 1.5px solid var(--copper);
+  border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 15px; }
+.chips button { border: 0; background: none; font: inherit; font-size: 18px; line-height: 1; cursor: pointer; color: var(--muted); padding: 0 4px; }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.nudge { background: var(--white); border-left: 4px solid var(--potassium); padding: 12px 14px; margin: 0 0 16px; font-size: 15px; }
+.nudge p { margin: 0 0 8px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+button.primary { font: inherit; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; background: var(--flame);
+  color: var(--white); border: 0; border-radius: 6px; padding: 14px 22px; cursor: pointer; }
+button.primary[disabled] { opacity: .6; cursor: progress; }
+button.secondary { font: inherit; background: none; border: 1.5px solid var(--night); color: var(--night); border-radius: 6px; padding: 12px 18px; cursor: pointer; }
+.error { color: #B3261E; font-weight: 700; min-height: 1.2em; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; padding: 0 16px 32px; }

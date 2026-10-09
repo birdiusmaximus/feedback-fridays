@@ -10,7 +10,7 @@
   let people = [];
   let lead = null;            // {id, name} or {id:null, name}
   let supporters = [];        // [{id, name}]
-  const usedVoice = { achievement: false, why: false };
+  const usedVoice = { achievement: false };
   let nudged = false;
 
   async function rpc(fn, body) {
@@ -45,7 +45,6 @@
       dl.id = "people-list";
       for (const p of people) { const o = document.createElement("option"); o.value = p.name; dl.appendChild(o); }
       document.body.appendChild(dl);
-      for (const t of ctx.teams) { const o = document.createElement("option"); o.value = t; o.textContent = t; $("team").appendChild(o); }
       try { $("nominator").value = localStorage.getItem("ff-nominator") || ""; } catch (e) { /* storage blocked */ }
       setupCombo("lead", (p) => { lead = p; $("lead").value = p.name; });
       setupCombo("supporter", (p) => { addSupporter(p); $("supporter").value = ""; });
@@ -117,9 +116,7 @@
   // ------------------------------------------------------------ voice: live, editable transcript
   function setupVoice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const note = $("voice-note");
-    if (!SR) { note.textContent = "Voice input isn’t available in this browser. Typing works everywhere."; return; }
-    note.textContent = "Voice uses your browser’s speech service (Google in Chrome, Apple in Safari). Nothing is recorded by Feedback Fridays; check the text before sending.";
+    if (!SR) return;   // no speech support (e.g. Firefox): Speak buttons stay hidden, typing works
     let rec = null, activeBtn = null;
     document.querySelectorAll(".mic").forEach((btn) => {
       btn.hidden = false;
@@ -152,30 +149,37 @@
     });
   }
 
-  // ------------------------------------------------------------ simple clarity nudges (browser rules, optional)
-  function nudges() {
+  // ------------------------------------------------------------ every field is required; one gentle nudge for very short write-ups
+  function missingFields() {
     const out = [];
-    const ach = $("achievement").value.trim();
-    if (ach.split(/\s+/).length < 20) out.push("Could you add a little more about what they actually did, or what changed because of it?");
-    if (!$("why").value.trim()) out.push("Why did it matter? One line on the impact helps the editor.");
-    return out.slice(0, 2);
+    if (!$("nominator").value.trim()) out.push("your name");
+    if (!$("lead").value.trim()) out.push("who led it");
+    if (!supporters.length) out.push("who else helped");
+    if (!$("achievement").value.trim()) out.push("what they did and why it was noteworthy");
+    if (!$("project").value.trim()) out.push("the client");
+    if (!$("disease").value.trim()) out.push("the disease area(s)");
+    return out;
   }
 
   $("nomination").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("form-error").textContent = "";
-    const leadName = $("lead").value.trim();
-    if (!$("nominator").value.trim() || !leadName || !$("achievement").value.trim()) {
-      $("form-error").textContent = "Please fill in your name, who led it, and what they did.";
+    const pending = $("supporter").value.trim();   // a typed name not yet turned into a chip
+    if (pending) { addSupporter({ id: null, name: pending }); $("supporter").value = ""; }
+    const missing = missingFields();
+    if (missing.length) {
+      $("form-error").textContent = `Please add ${missing.join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
       return;
     }
-    const n = nudges();
-    if (n.length && !nudged) {
+    const leadName = $("lead").value.trim();
+    if ($("achievement").value.trim().split(/\s+/).length < 20 && !nudged) {
       nudged = true;
       const box = $("nudge");
       box.innerHTML = "";
-      n.forEach((t) => { const p = document.createElement("p"); p.textContent = t; box.appendChild(p); });
-      const p = document.createElement("p"); p.textContent = "Add a bit more, or press Send nomination again to send as it is."; box.appendChild(p);
+      for (const t of ["Could you add a little more about what they did and why it mattered?",
+                       "Add a bit more, or press Send nomination again to send as it is."]) {
+        const p = document.createElement("p"); p.textContent = t; box.appendChild(p);
+      }
       box.hidden = false;
       return;
     }
@@ -183,12 +187,12 @@
       const exact = people.find((p) => p.name.toLowerCase() === leadName.toLowerCase());
       lead = exact ? { id: exact.id, name: exact.name } : { id: null, name: leadName };
     }
-    const method = usedVoice.achievement || usedVoice.why ? "voice" : "typed";
+    const method = usedVoice.achievement ? "voice" : "typed";
     const payload = {
       nominator: $("nominator").value.trim(), lead_name: lead.name, lead_employee_id: lead.id,
-      team_label: $("team").value || null, supporters, achievement: $("achievement").value.trim(),
-      why: $("why").value.trim() || null, project: $("project").value.trim() || null,
-      disease: $("disease").value.trim() || null, input_method: method, website: $("website").value,
+      team_label: null, supporters, achievement: $("achievement").value.trim(), why: null,
+      project: $("project").value.trim(), disease: $("disease").value.trim(),
+      input_method: method, website: $("website").value,
     };
     $("submit").disabled = true;
     try {
@@ -197,7 +201,7 @@
         $("form-error").textContent = {
           closed: "Nominations for this issue have just closed.",
           rate_limited: "Lots of nominations from this connection just now. Please wait a few minutes and try again.",
-          missing_fields: "Please fill in your name, who led it, and what they did.",
+          missing_fields: "Please complete every field.",
         }[res.reason] || "That didn’t work. Please try again.";
         return;
       }
@@ -216,7 +220,7 @@
     $("nomination").reset();
     $("nominator").value = keep;
     lead = null; supporters = []; drawChips(); nudged = false; $("nudge").hidden = true;
-    usedVoice.achievement = usedVoice.why = false;
+    usedVoice.achievement = false;
     show("state-form");
     $("lead").focus();
   });

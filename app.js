@@ -41,7 +41,8 @@
       }
       people = ctx.employees || [];
       $("issue-number").textContent = ctx.issue;
-      try { $("nominator").value = localStorage.getItem("ff-nominator") || ""; } catch (e) { /* storage blocked */ }
+      // Never prefill "Your name": the link is shared, so a remembered name would belong to someone else.
+      try { localStorage.removeItem("ff-nominator"); } catch (e) { /* storage blocked */ }
       setupCombo("nominator", (p) => { $("nominator").value = p.name; });
       setupCombo("lead", (p) => { lead = p; $("lead").value = p.name; });
       setupCombo("supporter", (p) => { addSupporter(p); $("supporter").value = ""; });
@@ -202,7 +203,6 @@
         }[res.reason] || "That didn’t work. Please try again.";
         return;
       }
-      try { localStorage.setItem("ff-nominator", payload.nominator); } catch (err) { /* ignore */ }
       $("done-name").textContent = lead.name;
       show("state-done");
     } catch (err) {

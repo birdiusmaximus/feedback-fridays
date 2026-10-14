@@ -1,7 +1,9 @@
 /* Feedback Fridays nomination form.
    - The issue link (?t=TOKEN) is checked on the server; invalid or closed links show a message.
    - Typed input always works. Voice uses the browser's own speech recognition (Chrome, Edge, Safari)
-     and writes a live, editable transcript into the field. No audio is recorded or stored by us. */
+     and writes a live, editable transcript into the field. No audio is recorded or stored by us.
+   - Photos (optional, up to 4) are shrunk in the browser to a JPEG (this also drops GPS and other
+     metadata), then uploaded to a private store with a one-off upload ticket for this issue. */
 (function () {
   "use strict";
   const cfg = window.FF_CONFIG;
@@ -12,6 +14,9 @@
   let supporters = [];        // [{id, name}]
   const usedVoice = { achievement: false };
   let nudged = false;
+  const MAX_PHOTOS = 4, MAX_EDGE = 2400;
+  let photos = [];            // [{id, url, state: "busy"|"done"|"failed", path, job}]
+  let ticket = null;
 
   async function rpc(fn, body) {
     const r = await fetch(`${cfg.supabaseUrl}/rest/v1/rpc/${fn}`, {
@@ -47,6 +52,7 @@
       setupCombo("lead", (p) => { lead = p; $("lead").value = p.name; });
       setupCombo("supporter", (p) => { addSupporter(p); $("supporter").value = ""; });
       setupVoice();
+      setupPhotos();
       show("state-form");
     } catch (e) {
       fail("We couldn’t reach the nomination service. Please check your connection and try again.");
@@ -147,6 +153,103 @@
     });
   }
 
+  // ------------------------------------------------------------ photos: shrink in the browser, upload in the background
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID()
+    : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+
+  async function getTicket() {
+    if (ticket) return ticket;
+    const res = await rpc("ff_upload_ticket", { p_token: token });
+    if (!res.ok) throw new Error(res.reason || "ticket");
+    ticket = res.ticket;
+    return ticket;
+  }
+
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => resolve({ img, url });
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+      img.src = url;
+    });
+  }
+
+  async function shrink(file) {
+    const { img, url } = await loadImage(file);    // browsers apply the photo's rotation when drawing
+    const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.86));
+    if (!blob) throw new Error("encode");
+    return { blob, preview: url };
+  }
+
+  async function uploadPhoto(p, file) {
+    try {
+      const { blob, preview } = await shrink(file);
+      p.url = preview; drawThumbs();
+      if (blob.size > 10 * 1024 * 1024) throw new Error("size");
+      const path = `${await getTicket()}/${uuid()}.jpg`;
+      const r = await fetch(`${cfg.supabaseUrl}/storage/v1/object/ff-submissions/${path}`, {
+        method: "POST",
+        headers: { apikey: cfg.publishableKey, "Content-Type": "image/jpeg", "x-upsert": "false" },
+        body: blob,
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      p.path = path; p.state = "done";
+    } catch (e) {
+      p.state = "failed";
+      p.error = e.message === "decode" ? "This photo type can’t be read here. Please use a JPEG or PNG."
+              : e.message === "rate_limited" ? "Lots of uploads just now. Please wait a few minutes."
+              : e.message === "closed" ? "Nominations for this issue have closed."
+              : "That photo didn’t upload. Remove it and try again.";
+    }
+    drawThumbs();
+  }
+
+  function addFiles(files) {
+    const room = MAX_PHOTOS - photos.length;
+    const list = [...files].filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+    if (list.length > room) $("photo-status").textContent = `Only ${MAX_PHOTOS} photos per nomination, so the first ${room} were added.`;
+    for (const f of list.slice(0, Math.max(0, room))) {
+      const p = { id: uuid(), url: "", state: "busy" };
+      photos.push(p);
+      p.job = uploadPhoto(p, f);
+    }
+    drawThumbs();
+  }
+
+  function drawThumbs() {
+    const ul = $("photo-thumbs");
+    ul.innerHTML = "";
+    photos.forEach((p) => {
+      const li = document.createElement("li");
+      li.className = p.state;
+      if (p.url) { const img = document.createElement("img"); img.src = p.url; img.alt = ""; li.appendChild(img); }
+      const st = document.createElement("span"); st.className = "state";
+      st.textContent = p.state === "busy" ? "Uploading…" : p.state === "failed" ? "Didn’t upload" : "";
+      li.appendChild(st);
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = "×"; b.setAttribute("aria-label", "Remove photo");
+      b.addEventListener("click", () => { photos = photos.filter((x) => x !== p); drawThumbs(); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+    $("photo-drop").hidden = photos.length >= MAX_PHOTOS;
+    const failed = photos.find((p) => p.state === "failed");
+    if (failed) $("photo-status").textContent = failed.error;
+    else if (!photos.some((p) => p.state === "busy")) $("photo-status").textContent = "";
+  }
+
+  function setupPhotos() {
+    const input = $("photos"), drop = $("photo-drop");
+    input.addEventListener("change", () => { addFiles(input.files); input.value = ""; });
+    drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); addFiles(e.dataTransfer.files); });
+  }
+
   // ------------------------------------------------------------ every field is required; one gentle nudge for very short write-ups
   function missingFields() {
     const out = [];
@@ -185,12 +288,23 @@
       const exact = people.find((p) => p.name.toLowerCase() === leadName.toLowerCase());
       lead = exact ? { id: exact.id, name: exact.name } : { id: null, name: leadName };
     }
+    if (photos.some((p) => p.state === "busy")) {
+      $("submit").disabled = true; $("submit").textContent = "Uploading photos…";
+      await Promise.all(photos.map((p) => p.job));
+      $("submit").textContent = "Send nomination";
+    }
+    if (photos.some((p) => p.state === "failed")) {
+      $("submit").disabled = false;
+      $("form-error").textContent = "One photo didn’t upload. Remove it (×) or add it again, then send.";
+      return;
+    }
     const method = usedVoice.achievement ? "voice" : "typed";
     const payload = {
       nominator: $("nominator").value.trim(), lead_name: lead.name, lead_employee_id: lead.id,
       team_label: null, supporters, achievement: $("achievement").value.trim(), why: null,
       project: $("project").value.trim(), disease: $("disease").value.trim(),
       input_method: method, website: $("website").value,
+      photos: photos.filter((p) => p.state === "done").map((p) => p.path),
     };
     $("submit").disabled = true;
     try {
@@ -217,6 +331,7 @@
     $("nomination").reset();
     $("nominator").value = keep;
     lead = null; supporters = []; drawChips(); nudged = false; $("nudge").hidden = true;
+    photos = []; ticket = null; drawThumbs();
     usedVoice.achievement = false;
     show("state-form");
     $("lead").focus();

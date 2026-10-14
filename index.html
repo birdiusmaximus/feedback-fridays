@@ -8,7 +8,7 @@
 <title>Nominate | Feedback Fridays</title>
 <link rel="icon" href="assets/gig-health-primary.svg" />
 <link rel="stylesheet" href="https://use.typekit.net/wek0eum.css" />
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
 <header class="masthead">
@@ -43,7 +43,7 @@
       </div>
 
       <div class="field">
-        <label for="lead">Who led this achievement?</label>
+        <label for="lead">Who led this achievement? <span class="aside">(their photo fronts it)</span></label>
         <div class="combo" data-combo="lead">
           <input id="lead" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lead-list"
                  autocomplete="off" required maxlength="120" placeholder="Start typing a name" />
@@ -52,7 +52,7 @@
       </div>
 
       <div class="field">
-        <label for="supporter">Who else helped?</label>
+        <label for="supporter">Who else helped? <span class="aside">(they will be mentioned)</span></label>
         <ul class="chips" id="supporter-chips" aria-label="Supporting contributors"></ul>
         <div class="combo" data-combo="supporter">
           <input id="supporter" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="supporter-list"
@@ -73,12 +73,23 @@
       <div class="field two">
         <div>
           <label for="project">Client</label>
-          <input id="project" name="project" required maxlength="300" />
+          <input id="project" name="project" required maxlength="300" placeholder="Novartis" />
         </div>
         <div>
           <label for="disease">Disease area(s)</label>
-          <input id="disease" name="disease" required maxlength="200" />
+          <input id="disease" name="disease" required maxlength="200" placeholder="Prostate Cancer, Breast Cancer" />
         </div>
+      </div>
+
+      <div class="field">
+        <label for="photos">Any photos from it?</label>
+        <ul class="thumbs" id="photo-thumbs" aria-label="Photos added"></ul>
+        <label class="drop" id="photo-drop" for="photos">
+          <input id="photos" type="file" accept="image/*" multiple class="sr" />
+          <span class="drop-main">Add photos</span>
+          <span class="drop-sub">Up to 4, from your phone or computer</span>
+        </label>
+        <p class="interim" id="photo-status" aria-live="polite"></p>
       </div>
 
       <div class="hp" aria-hidden="true">
@@ -104,7 +115,7 @@
 </main>
 
 <footer class="foot"><p>Feedback Fridays · GIG Health internal</p></footer>
-<script src="config.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="config.js?v=10"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
